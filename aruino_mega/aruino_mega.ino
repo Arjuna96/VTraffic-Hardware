@@ -1,40 +1,66 @@
 int lights[8][3] = {{2,3,4},{5,6,7},{8,9,10},{11,12,13},{14,15,16},{17,18,19},{20,21,22},{23,24,25}};
-int lastOn=0;
+int lastOn = 0;
 int lightId = 1;
+int defaultDelay = 5000;
+int stateDelay = 5000;
+int currentState = 1;
+int previosState = 1;
+int x = 1;
+
+int state[5][3] = {{0,0,0}, {1,2,8}, {3,4,2}, {5,6,4}, {7,8,5}};
 
 void setup() {
   Serial.begin(115200);
 
-  pinMode(2, OUTPUT);
-  pinMode(3, OUTPUT);
-  pinMode(4, OUTPUT);
-  pinMode(5, OUTPUT);
-  pinMode(6, OUTPUT);
-  pinMode(7, OUTPUT);
-  pinMode(8, OUTPUT);
-  pinMode(9, OUTPUT);
-  pinMode(10, OUTPUT);
-  delay(2000);
+  for (int id = 2; id < 26; id++) {
+    pinMode(id, OUTPUT);
+  }
+
+  delay(1000);
+
+  for (int stateId = 1; stateId < 5; stateId++) {
+    for (int id = 0; id < 3; id++) {
+       int prelightId = state[stateId][id];
+       red(prelightId);
+    }
+  }
 }
 
 void loop() {
-  if (Serial.available() > 0) {
-//    char temp[3];
-//    String arrayString = Serial.readString();
-//    arrayString.toCharArray(temp, 3);
-//    Serial.print(temp);
-    char c = Serial.read();
-    Serial.println("serial");
-    if (c == '1') {
-      lightId = 1;
-    } else if (c == '2') {
-      lightId = 2;
-    } else if (c == '3') {
-      lightId = 3;  
-    }
+ currentState = x % 5;
+ stateDelay = get_delay_time();
 
-    light_control(lightId);
+ for (int id = 0; id < 3; id++) {
+   int prelightId = state[previosState][id];
+   red(prelightId);
  }
+
+ delay(2000);
+
+ for (int id = 0; id < 3; id++) {
+   int currlightId = state[currentState][id];
+   green(currlightId);
+ }
+
+ Serial.write(300);
+ x = currentState + 1;
+ previosState=currentState;
+ delay(stateDelay);
+}
+
+int get_delay_time () {
+  int time = defaultDelay;
+  Serial.write(100);
+
+  while (Serial.available() > 0) {
+    time = Serial.read();
+
+    if (time == 0) {
+      time = defaultDelay;
+    }
+  }
+
+  return time;
 }
 
 void light_control(int id) {
