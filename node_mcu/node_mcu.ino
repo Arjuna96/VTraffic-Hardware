@@ -1,27 +1,21 @@
 #include "ESP8266WiFi.h"
-#include <ESP8266WebServer.h>
 
-const char* ssid = "SLT-LTE-WiFi";
-const char* password = "th8ne88y8qf";
-
-//const char* ssid = "IIT Student WIFI";
-//const char* password = "#1234@abcd";
-
-ESP8266WebServer server(80);
+const char* ssid = "IIT Student WIFI";
+const char* password = "#1234@abcd";
 
 void setup(void) {
-  Serial.begin(115200);
-  WiFi.begin(ssid, password);
-//
-//    int numSsid = WiFi.scanNetworks();
-//   for (int thisNet = 0; thisNet < numSsid; thisNet++) {
-//    Serial.print(thisNet);
-//    Serial.print(") ");
-//    Serial.print(WiFi.SSID(thisNet));
-//    Serial.print("\tSignal: ");
-//    Serial.print(WiFi.RSSI(thisNet));
-//    Serial.println("");
-//  }
+  Serial.begin(115200); // Starting serial communication
+  
+  // Printng available wifi networks
+   int numSsid = WiFi.scanNetworks();
+   for (int wifiId = 0; wifiId < numSsid; wifiId++) {
+    Serial.print(wifiId);
+    Serial.print("----");
+    Serial.print(WiFi.SSID(wifiId));
+    Serial.println("");
+  }
+
+  WiFi.begin(ssid, password); // Connecting to wifi
 
   while (WiFi.status() != WL_CONNECTED) {
      delay(500);
@@ -32,32 +26,66 @@ void setup(void) {
   Serial.println("WiFi connected");
 
   Serial.println(WiFi.localIP());
-  server.on("/", handleBody);
-  Serial.println("server started");
-  server.begin();
 }
 
 void loop() {
-  server.handleClient();
-  delay(1000);
+  if (Serial.available () > 0 ) {  // checking any request code from colorlight controller
+    int reqCode = Serial.read();
+    
+    if (reqCode == 100) {
+      get_time_delay ();  // Requesting color light time
+    } else if (reqCode == 200) {
+      update_current_state ();   // Requesting to save current color light state
+    } else if (reqCode == 300) {
+      request_pedestrian_crossing (); // Requesting to pedestrian crossing
+    }
 }
 
-void handleBody() {
-  Serial.println("handle body");
-  if (server.hasArg("plain")== false){ //Check if body received
-        Serial.println("received");
-        server.send(200, "text/plain", "Body not received");
-        return;
-
-  }
-  Serial.println("handle body");
-  String message = "Body received:\n";
-         message += server.arg("plain");
-         message += "\n";
-
-  server.send(200, "text/plain", message);
-  char data = server.arg("plain").charAt(0);
-  Serial.println(data);
-  Serial.write(data);
+void get_time_delay () {
+  http.post('https://vtraffic.herokuapp.com/getTime/',
+        'Content-Type: application/json\r\n',
+        '{"locationId":"1",
+        "stateId":"5"}', 
+        function(reqStat, data) {
+          if (reqStat < 0) then
+            Serial.println("failed")
+            Serial.write (0);
+          else
+            Serial.println("Success")
+            Serial.write (data.time);
+          end 
+        }       
+  end
 }
+  
+void update_current_state () {
+ http.post('https://vtraffic.herokuapp.com/state/',
+        'Content-Type: application/json\r\n',
+        '{"locationId":"1",
+        "currentState":"2"}', 
+        function(reqStat, data) {
+          if (reqStat < 0) then
+            Serial.println("failed - saveState")
+          else
+            Serial.println("Success - saveState")
+          end 
+        }       
+  end
+}
+
+void request_pedestrian_crossing () {
+  http.post('https://vtraffic.herokuapp.com/pedestrian/',
+          'Content-Type: application/json\r\n',
+          '{"locationId":"1",
+          "crossintId":"1"}', 
+          function(reqStat, data) {
+            if (reqStat < 0) then
+              Serial.println("failed - pedestrian")
+            else
+              Serial.println("Success - pedestrian")
+            end 
+          }       
+    end
+}
+
 
