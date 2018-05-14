@@ -40,19 +40,18 @@ int trafficLightId;
 int stateId;
 
 void loop() {
-  if (Serial.available () > 0 ) {
+  if (Serial.available () > 3) {
       integerValue = 0;
+      String str = "";
 
-      while(1) {
+      while(true) {
         incomingByte = Serial.read();
         if (incomingByte == '\n') break;
         if (incomingByte == -1) continue;
-        integerValue *= 10;
-    
-        integerValue = ((incomingByte - 48) + integerValue);
+        str += incomingByte;
+        integerValue = str.toInt();
       }
 
-      Serial.println(integerValue);
       int reqCode = get_req_code ();
       set_req_params(reqCode);
 
@@ -84,8 +83,8 @@ int get_req_code () {
 void set_req_params (int reqCode) {
   int remain = integerValue % reqCode;
   String temp = String(remain);
-  trafficLightId = temp.charAt(0);
-  stateId = temp.charAt(1);
+  trafficLightId = String(temp.charAt(0)).toInt();
+  stateId = String(temp.charAt(1)).toInt();
 }
 
 
@@ -93,39 +92,40 @@ void set_req_params (int reqCode) {
 
 // get the delay time for next traffic state from server 
 void get_time_delay () {
-  http.begin("http://18.221.95.10:2000/api/requestTime");
+  http.begin("http://18.191.39.15:2000/api/requestTime");
   http.addHeader("Content-Type", "application/json; charset=utf-8");
 
   String stringOne = "{\"trafficLightId\":\"";
   String stringTwo = "\",\"stateId\":\"";
   String stringThree = "\"}";
   String paramString = stringOne + trafficLightId + stringTwo + stateId + stringThree;
-
-  char payload[sizeof(paramString)];
-  paramString.toCharArray(payload, strlen(payload));
   
-  int httpCode = http.POST((uint8_t *)payload,strlen(payload));
+  int httpCode = http.POST(paramString);
 
   if(httpCode == HTTP_CODE_OK) {
-      Serial.print("HTTP response code ");
-      Serial.println(httpCode);
+//      Serial.print("HTTP response code ");
+//      Serial.println(httpCode);
       String response = http.getString();
-      Serial.write(100);
-      Serial.println(response);
+//      Serial.write(response.toInt());
+      serialWrite(response.toInt());
   } else {
-    Serial.write(0);
-    Serial.println("Error in HTTP request");
+//    Serial.println("Error in HTTP request");
   }
 
   http.end();
 }
 
-
+char* string2char(String phrase){
+    if(phrase.length()!=0){
+        char *chrArray = const_cast<char*>(phrase.c_str());
+        return chrArray;
+    }
+}
 
 // check connection
 void test () {
   Serial.println("getDelay");
-  http.begin("http://18.221.95.10:2000/api/test");
+  http.begin("http://18.191.39.15:2000/api/test");
   int httpCode = http.GET();
 
   if(httpCode == HTTP_CODE_OK) {
@@ -145,7 +145,7 @@ void test () {
 
 // update the traffic light state in database
 void update_current_state () {
- http.begin("http://18.221.95.10:2000/api/updateState");
+ http.begin("http://18.191.39.15:2000/api/updateState");
   http.addHeader("Content-Type", "application/json; charset=utf-8");
   
   String stringOne = "{\"trafficLightId\":\"";
@@ -159,16 +159,21 @@ void update_current_state () {
   int httpCode = http.POST((uint8_t *)payload,strlen(payload));
 
   if(httpCode == HTTP_CODE_OK) {
-      Serial.print("HTTP response code ");
-      Serial.println(httpCode);
+//      Serial.print("HTTP response code ");
+//      Serial.println(httpCode);
       String response = http.getString();
-      Serial.println(response);
+//      Serial.println(response);
   } else {
-    Serial.println("Error in HTTP request");
+//    Serial.println("Error in HTTP request");
   }
 
   http.end();
 }
 
-
+void serialWrite (int value) {
+  String str = String(value);
+//  char arry[sizeof(str)];
+//  str.toCharArray(arry, sizeof(arry));
+  Serial.println(str);
+}
 
