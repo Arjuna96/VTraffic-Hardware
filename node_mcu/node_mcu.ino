@@ -40,21 +40,30 @@ int trafficLightId;
 int stateId;
 
 void loop() {
-  if (Serial.available () > 3) {
+  if (Serial.available () > 2) {
       integerValue = 0;
       String str = "";
 
-      while(true) {
+      for (int x = 0; x < 3; x++) {
         incomingByte = Serial.read();
         if (incomingByte == '\n') break;
         if (incomingByte == -1) continue;
         str += incomingByte;
         integerValue = str.toInt();
+//        Serial.println(incomingByte);
       }
-
-      int reqCode = get_req_code ();
-      set_req_params(reqCode);
-
+//Serial.println(str);
+      while(Serial.available()) {
+        Serial.read();
+      }
+      Serial.println("afterflush " + Serial.read());
+      int reqCode;
+      
+      if (integerValue > 100) {
+        reqCode = get_req_code ();
+        set_req_params(reqCode);
+      }
+      
       if (reqCode == 100) {
         get_time_delay();                     // Requesting color light time
       } else if (reqCode == 200) {
@@ -69,10 +78,10 @@ void loop() {
 
 // return request code to identyfy the relevent request
 int get_req_code () {
-  if (integerValue > 200) {
-    return 200;
-  } else {
+  if (integerValue < 200) {
     return 100;
+  } else if (integerValue < 300) {
+    return 200;
   }
 }
 
@@ -92,7 +101,7 @@ void set_req_params (int reqCode) {
 
 // get the delay time for next traffic state from server 
 void get_time_delay () {
-  http.begin("http://18.191.39.15:2000/api/requestTime");
+  http.begin("http://192.168.1.3:2000/api/requestTime");
   http.addHeader("Content-Type", "application/json; charset=utf-8");
 
   String stringOne = "{\"trafficLightId\":\"";
@@ -109,7 +118,7 @@ void get_time_delay () {
 //      Serial.write(response.toInt());
       serialWrite(response.toInt());
   } else {
-//    Serial.println("Error in HTTP request");
+    Serial.println("Error in HTTP request");
   }
 
   http.end();
@@ -145,7 +154,7 @@ void test () {
 
 // update the traffic light state in database
 void update_current_state () {
- http.begin("http://18.191.39.15:2000/api/updateState");
+ http.begin("http://192.168.1.3:2000/api/updateState");
   http.addHeader("Content-Type", "application/json; charset=utf-8");
   
   String stringOne = "{\"trafficLightId\":\"";
