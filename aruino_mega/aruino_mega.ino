@@ -44,10 +44,8 @@ void loop() {
   serialWrite(timeRequestCOde + lightId*10 + currentState);
   Serial.println("rqst");
   delay(2000);
-//  Serial.println(count);
-//  if (count == 0) {
-    Timer1.detachInterrupt();
-//  }
+
+  Timer1.detachInterrupt();
   
   get_delay_time();
 
@@ -68,9 +66,8 @@ void loop() {
   previosState = currentState;
   delay(1000);
   Timer1.attachInterrupt(timer);
-//  Serial.println(stateDelay);
+
   delay(stateDelay - 2000);
-//  Serial.println("after");
 }
 
 int get_delay_time () {
@@ -96,7 +93,6 @@ int get_delay_time () {
   }
 
   stateDelay = time;
-//  Serial.println(stateDelay);
 }
 
 void light_control(int id) {
@@ -145,13 +141,10 @@ void reset(int light) {
 
 void serialWrite (int value) {
   String str = String(value);
-//  char arry[sizeof(str)];
-//  str.toCharArray(arry, sizeof(arry));
   Serial.println(value);
 }
 
 void timer () {
-//  Serial.println("timer");
   display.showNumberDec(count, true, 4, 0);
   if (count != 0) {
     count = count - 1;

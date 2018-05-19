@@ -50,9 +50,8 @@ void loop() {
         if (incomingByte == -1) continue;
         str += incomingByte;
         integerValue = str.toInt();
-//        Serial.println(incomingByte);
       }
-//Serial.println(str);
+
       while(Serial.available()) {
         Serial.read();
       }
@@ -112,10 +111,7 @@ void get_time_delay () {
   int httpCode = http.POST(paramString);
 
   if(httpCode == HTTP_CODE_OK) {
-//      Serial.print("HTTP response code ");
-//      Serial.println(httpCode);
       String response = http.getString();
-//      Serial.write(response.toInt());
       serialWrite(response.toInt());
   } else {
     Serial.println("Error in HTTP request");
@@ -165,12 +161,9 @@ void update_current_state () {
   int httpCode = http.POST(paramString);
 
   if(httpCode == HTTP_CODE_OK) {
-//      Serial.print("HTTP response code ");
-//      Serial.println(httpCode);
       String response = http.getString();
-//      Serial.println(response);
   } else {
-//    Serial.println("Error in HTTP request");
+    Serial.println("Error in HTTP request");
   }
 
   http.end();
@@ -178,8 +171,6 @@ void update_current_state () {
 
 void serialWrite (int value) {
   String str = String(value);
-//  char arry[sizeof(str)];
-//  str.toCharArray(arry, sizeof(arry));
   Serial.println(str);
 }
 
