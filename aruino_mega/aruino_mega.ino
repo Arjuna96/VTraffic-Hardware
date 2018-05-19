@@ -11,8 +11,8 @@ int lastOn = 0;
 int lightId = 1;
 long defaultDelay = 10000;
 long stateDelay = 10000;
-int currentState = 1;
-int previosState = 1;
+int currentState = 0;
+int previosState = 0;
 int x = 0;
 int timeRequestCOde = 100;
 int saveStateRqstCode = 200;;
@@ -42,12 +42,12 @@ void setup() {
 void loop() {
   currentState = x % 4;
   serialWrite(timeRequestCOde + lightId*10 + currentState);
-//  Serial.println("rqst");
+  Serial.println("rqst");
   delay(2000);
 //  Serial.println(count);
-  if (count == 0) {
+//  if (count == 0) {
     Timer1.detachInterrupt();
-  }
+//  }
   
   get_delay_time();
 
@@ -56,8 +56,6 @@ void loop() {
     int prelightId = state[previosState][id];
     red(prelightId);
   }
-
-  delay(1000);
 
 // Current lights to green 
   for (int id = 0; id < 3; id++) {
@@ -68,9 +66,10 @@ void loop() {
   serialWrite(saveStateRqstCode + lightId*10 + currentState);
   x = currentState + 1;
   previosState = currentState;
+  delay(1000);
   Timer1.attachInterrupt(timer);
-//  Serial.println(stateDelay - 7000);
-  delay(stateDelay);
+//  Serial.println(stateDelay);
+  delay(stateDelay - 2000);
 //  Serial.println("after");
 }
 
@@ -86,7 +85,7 @@ int get_delay_time () {
         if (incomingByte == -1) continue;
         str += incomingByte;
         
-        count = str.toInt() + 1;
+        count = str.toInt();
         time = str.toInt() * 1000;
       }
   }
@@ -153,9 +152,9 @@ void serialWrite (int value) {
 
 void timer () {
 //  Serial.println("timer");
-  
+  display.showNumberDec(count, true, 4, 0);
   if (count != 0) {
     count = count - 1;
   }
-  display.showNumberDec(count, true, 4, 0);
+  
 }

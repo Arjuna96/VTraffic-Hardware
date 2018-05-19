@@ -101,7 +101,7 @@ void set_req_params (int reqCode) {
 
 // get the delay time for next traffic state from server 
 void get_time_delay () {
-  http.begin("http://192.168.1.3:2000/api/requestTime");
+  http.begin("http://18.191.39.15:2000/api/requestTime");
   http.addHeader("Content-Type", "application/json; charset=utf-8");
 
   String stringOne = "{\"trafficLightId\":\"";
@@ -154,18 +154,15 @@ void test () {
 
 // update the traffic light state in database
 void update_current_state () {
- http.begin("http://192.168.1.3:2000/api/updateState");
-  http.addHeader("Content-Type", "application/json; charset=utf-8");
-  
+ http.begin("http://18.191.39.15:2000/api/updateState");
+ http.addHeader("Content-Type", "application/json; charset=utf-8");
+
   String stringOne = "{\"trafficLightId\":\"";
   String stringTwo = "\",\"stateId\":\"";
   String stringThree = "\"}";
   String paramString = stringOne + trafficLightId + stringTwo + stateId + stringThree;
-
-  char payload[sizeof(paramString)];
-  paramString.toCharArray(payload, strlen(payload));
   
-  int httpCode = http.POST((uint8_t *)payload,strlen(payload));
+  int httpCode = http.POST(paramString);
 
   if(httpCode == HTTP_CODE_OK) {
 //      Serial.print("HTTP response code ");
